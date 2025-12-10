@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The_Tally - Admin Dashboard</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <!-- DataTables -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css">
+    
+    <style>
+        :root {
+            --primary: #4361ee;
+            --secondary: #3a0ca3;
+            --accent: #f72585;
+            --success: #4cc9f0;
+            --warning: #ff9e00;
+            --danger: #ef233c;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --sidebar-width: 260px;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .dashboard-container {
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        /* Sidebar Styles */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: linear-gradient(180deg, var(--dark) 0%, #2d3748 100%);
+            color: white;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            box-shadow: 3px 0 10px rgba(0,0,0,0.2);
+            z-index: 1000;
+        }
+        
+        .sidebar-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid #4a5568;
+        }
+        
+        .sidebar-header h2 {
+            color: white;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0;
+        }
+        
+        .sidebar-header h2 i {
+            color: var(--success);
+        }
+        
+        .sidebar-menu {
+            padding: 1rem 0;
+        }
+        
+        .menu-item {
+            padding: 0.8rem 1.5rem;
+            color: #cbd5e0;
+            text-decoration: none;
+            display: block;
+            transition: all 0.3s ease;
+            border-left: 3px solid transparent;
+        }
+        
+        .menu-item:hover {
+            background: rgba(66, 153, 225, 0.1);
+            color: white;
+            border-left-color: var(--primary);
+            padding-left: 2rem;
+        }
+        
+        .menu-item.active {
+            background: rgba(66, 153, 225, 0.2);
+            color: white;
+            border-left-color: var(--success);
+            font-weight: 600;
+        }
+        
+        .menu-item i {
+            width: 24px;
+            margin-right: 10px;
+        }
+        
+        .sub-menu {
+            padding-left: 2.5rem;
+            display: none;
+        }
+        
+        .sub-menu .menu-item {
+            padding: 0.6rem 1rem;
+            font-size: 0.9rem;
+        }
+        
+        .has-submenu.active .sub-menu {
+            display: block;
+        }
+        
+        /* Main Content Styles */
+        .main-content {
+            flex: 1;
+            margin-left: var(--sidebar-width);
+            background: #f7fafc;
+            min-height: 100vh;
+        }
+        
+        .top-bar {
+            background: white;
+            padding: 1rem 2rem;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .search-container {
+            flex-grow: 1;
+            max-width: 500px;
+        }
+        
+        .search-box {
+            position: relative;
+        }
+        
+        .search-box input {
+            width: 100%;
+            padding: 0.75rem 1rem 0.75rem 3rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+        }
+        
+        .search-box input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
+            outline: none;
+        }
+        
+        .search-box i {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #a0aec0;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+        }
+        
+        /* Content Area */
+        .content-area {
+            padding: 2rem;
+        }
+        
+        /* Stats Cards */
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            border-left: 4px solid var(--primary);
+            transition: transform 0.3s ease;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .stat-card.warning {
+            border-left-color: var(--warning);
+        }
+        
+        .stat-card.danger {
+            border-left-color: var(--danger);
+        }
+        
+        .stat-card.success {
+            border-left-color: var(--success);
+        }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            margin: 0.5rem 0;
+        }
+        
+        .stat-label {
+            color: #718096;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+        
+        /* Quick Actions */
+        .quick-actions {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+        
+        .action-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            color: var(--dark);
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .action-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            transform: translateY(-2px);
+        }
+        
+        .action-btn.primary {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+        }
+        
+        .action-btn.primary:hover {
+            background: var(--secondary);
+            border-color: var(--secondary);
+            color: white;
+        }
+        
+        /* Drug Table */
+        .table-container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+        }
+        
+        .table-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .table-header h3 {
+            margin: 0;
+            color: var(--dark);
+        }
+        
+        .table-controls {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+        
+        .select-control {
+            padding: 0.5rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            background: white;
+        }
+        
+        .badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        
+        .badge.retail {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+        
+        .badge.wholesale {
+            background: #bee3f8;
+            color: #1a365d;
+        }
+        
+        /* Footer */
+        .footer {
+            margin-top: 3rem;
+            padding: 1.5rem;
+            text-align: center;
+            color: #718096;
+            font-size: 0.9rem;
+            border-top: 1px solid #e2e8f0;
+        }
+        
+        /* Responsive */
+        @media (max-width: 992px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+            }
+            
+            .sidebar.active {
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+            
+            .menu-toggle {
+                display: block;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h2><i class="fas fa-capsules"></i> The_Tally</h2>
+                <small class="text-muted">Administrator</small>
+            </div>
+            
+            <div class="sidebar-menu">
+                <a href="{% url 'admin_dashboard' %}" class="menu-item active">
+                    <i class="fas fa-tachometer-alt"></i> Dashboard
+                </a>
+                
+                <a href="{% url 'admin:auth_user_changelist' %}" class="menu-item">
+                    <i class="fas fa-users"></i> Accounts
+                </a>
+                
+                <div class="menu-item has-submenu" onclick="toggleSubmenu(this)">
+                    <i class="fas fa-chart-bar"></i> Reports
+                    <i class="fas fa-chevron-down float-end mt-1"></i>
+                </div>
+                <div class="sub-menu">
+                    <a href="#" class="menu-item">Stock Report</a>
+                    <a href="#" class="menu-item">Sales Report</a>
+                    <a href="#" class="menu-item">Expiry Report</a>
+                </div>
+                
+                <div class="menu-item has-submenu" onclick="toggleSubmenu(this)">
+                    <i class="fas fa-shopping-cart"></i> Sell
+                    <i class="fas fa-chevron-down float-end mt-1"></i>
+                </div>
+                <div class="sub-menu">
+                    <a href="#" class="menu-item">Retail Sell</a>
+                    <a href="#" class="menu-item">Whole Sell</a>
+                    <a href="#" class="menu-item">Drug Invoice</a>
+                </div>
+                
+                <a href="#" class="menu-item">
+                    <i class="fas fa-box"></i> Dead Stock
+                </a>
+                
+                <a href="#" class="menu-item">
+                    <i class="fas fa-clipboard-list"></i> Order Pro
+                </a>
+                
+                <a href="#" class="menu-item">
+                    <i class="fas fa-shopping-bag"></i> Procurement
+                </a>
+                
+                <a href="#" class="menu-item">
+                    <i class="fas fa-clock"></i> Short Expiry
+                </a>
+                
+                <a href="#" class="menu-item">
+                    <i class="fas fa-calendar-times"></i> Expires
+                </a>
+                
+                <hr class="text-muted mx-3 my-3">
+                
+                <!-- Additional Menu Items -->
+                <a href="{% url 'admin:The_Tally_drug_changelist' %}" class="menu-item">
+                    <i class="fas fa-pills"></i> Master Stock
+                </a>
+                
+                <a href="#" class="menu-item">
+                    <i class="fas fa-trash"></i> Deleted Drugs
+                </a>
+                
+                <a href="#" class="menu-item">
+                    <i class="fas fa-receipt"></i> Deleted Receipts
+                </a>
+                
+                <a href="#" class="menu-item">
+                    <i class="fas fa-barcode"></i> Scan
+                </a>
+                
+                <a href="#" class="menu-item">
+                    <i class="fas fa-file-invoice"></i> Invoices
+                </a>
+                
+                <a href="#" class="menu-item">
+                    <i class="fas fa-cogs"></i> Dosage forms
+                </a>
+                
+                <a href="{% url 'admin:The_Tally_supplier_changelist' %}" class="menu-item">
+                    <i class="fas fa-truck"></i> Suppliers
+                </a>
+                
+                <a href="{% url 'admin:The_Tally_category_changelist' %}" class="menu-item">
+                    <i class="fas fa-tags"></i> Categories
+                </a>
+                
+                <a href="#" class="menu-item">
+                    <i class="fas fa-user-circle"></i> Profile
+                </a>
+            </div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Top Bar -->
+            <div class="top-bar">
+                <button class="btn btn-outline-primary d-lg-none" onclick="toggleSidebar()">
+                    <i class="fas fa-bars"></i>
+                </button>
+                
+                <div class="search-container ms-3">
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="drugSearch" placeholder="Search the drug to control..." 
+                               onkeyup="searchDrugs()">
+                    </div>
+                </div>
+                
+                <div class="user-info">
+                    <div class="user-avatar">
+                        {{ request.user.username|first|upper }}
+                    </div>
+                    <div>
+                        <strong>Logged in as:</strong><br>
+                        <span class="text-primary">{{ request.user.get_full_name|default:request.user.username|upper }}</span>
+                    </div>
+                    <a href="{% url 'admin:logout' %}" class="btn btn-outline-danger btn-sm">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Content Area -->
+            <div class="content-area">
+                <!-- Stats Cards -->
+                <div class="stats-container">
+                    <div class="stat-card">
+                        <div class="stat-label">Stock Cost Value</div>
+                        <div class="stat-value text-primary">Ksh {{ total_cost_value|floatformat:2 }}</div>
+                        <small>Total inventory cost value</small>
+                    </div>
+                    
+                    <div class="stat-card success">
+                        <div class="stat-label">Stock Sale Value</div>
+                        <div class="stat-value text-success">Ksh {{ total_sale_value|floatformat:2 }}</div>
+                        <small>Total inventory sale value</small>
+                    </div>
+                    
+                    <div class="stat-card warning">
+                        <div class="stat-label">Low Stock Drugs</div>
+                        <div class="stat-value text-warning">{{ low_stock_count }}</div>
+                        <small>Drugs below minimum quantity</small>
+                    </div>
+                    
+                    <div class="stat-card danger">
+                        <div class="stat-label">Expiring Soon</div>
+                        <div class="stat-value text-danger">{{ expiring_soon_count }}</div>
+                        <small>Drugs expiring in 30 days</small>
+                    </div>
+                </div>
+                
+                <!-- Quick Actions -->
+                <div class="quick-actions">
+                    <a href="{% url 'admin:The_Tally_drug_add' %}" class="action-btn primary">
+                        <i class="fas fa-plus"></i> Add New Drug
+                    </a>
+                    <a href="#" class="action-btn">
+                        <i class="fas fa-clipboard-list"></i> My Orders
+                    </a>
+                    <a href="#" class="action-btn">
+                        <i class="fas fa-box"></i> Create Kit
+                    </a>
+                    <a href="#" class="action-btn">
+                        <i class="fas fa-calculator"></i> Cal AMC
+                    </a>
+                    <a href="#" class="action-btn">
+                        <i class="fas fa-clipboard-check"></i> Stock Take
+                    </a>
+                    <a href="#" class="action-btn">
+                        <i class="fas fa-upload"></i> Stock Take Upload
+                    </a>
+                    <a href="#" class="action-btn">
+                        <i class="fas fa-sms"></i> SMS
+                    </a>
+                    <a href="#" class="action-btn">
+                        <i class="fas fa-file-upload"></i> Bulky Stock Upload
+                    </a>
+                </div>
+                
+                <!-- Drug Table -->
+                <div class="table-container">
+                    <div class="table-header">
+                        <h3><i class="fas fa-capsules"></i> Drug Inventory</h3>
+                        <div class="table-controls">
+                            <select class="select-control" id="rowsPerPage" onchange="changeRowsPerPage()">
+                                <option value="10">10 rows</option>
+                                <option value="25">25 rows</option>
+                                <option value="50">50 rows</option>
+                                <option value="100">100 rows</option>
+                                <option value="all">All</option>
+                            </select>
+                            <select class="select-control" id="drugTypeFilter" onchange="filterDrugs()">
+                                <option value="all">All Types</option>
+                                <option value="retail">Retail</option>
+                                <option value="wholesale">Wholesale</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="table-responsive">
+                        <table class="table table-hover" id="drugTable">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Generic</th>
+                                    <th>Brand</th>
+                                    <th>Dosage</th>
+                                    <th>Description</th>
+                                    <th>Stock Qty</th>
+                                    <th>Min Qty</th>
+                                    <th>Batch</th>
+                                    <th>Expiry</th>
+                                    <th>Selling Price</th>
+                                    <th>Category</th>
+                                    <th>Type</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for drug in drugs %}
+                                <tr data-status="{{ drug.stock_status_color }}" data-expiry="{{ drug.expiry_status_color }}">
+                                    <td>
+                                        <div class="fw-bold">{{ drug.generic_name|truncatechars:50 }}</div>
+                                    </td>
+                                    <td>
+                                        <div class="fw-semibold">{{ drug.brand_name }}</div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-light text-dark">{{ drug.get_dosage_display }}</span>
+                                    </td>
+                                    <td>
+                                        <small class="text-muted">{{ drug.description|default:"-"|truncatechars:30 }}</small>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-{{ drug.stock_status_color }}">
+                                            {{ drug.stock_qty }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-light text-dark">{{ drug.min_qty }}</span>
+                                    </td>
+                                    <td>
+                                        <code>{{ drug.batch }}</code>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-{{ drug.expiry_status_color }}">
+                                            {{ drug.expiry|date:"Y-m-d" }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="fw-bold text-success">Ksh {{ drug.selling_price|floatformat:2 }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-info">{{ drug.category.name|default:"-" }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge {{ drug.drug_type }}">
+                                            {{ drug.get_drug_type_display }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="{% url 'admin:The_Tally_drug_change' drug.id %}" 
+                                               class="btn btn-outline-primary" title="Edit">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <a href="{% url 'admin:The_Tally_drug_delete' drug.id %}" 
+                                               class="btn btn-outline-danger" title="Delete">
+                                                <i class="fas fa-trash"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="12" class="text-center py-4">
+                                        <div class="text-muted">
+                                            <i class="fas fa-box-open fa-2x mb-3"></i>
+                                            <h5>No drugs found</h5>
+                                            <p>Add your first drug to get started!</p>
+                                            <a href="{% url 'admin:The_Tally_drug_add' %}" class="btn btn-primary">
+                                                <i class="fas fa-plus"></i> Add First Drug
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Footer -->
+                <div class="footer">
+                    <p>The_Tally &copy; {% now "Y" %} | Drug Inventory Management System | v1.0.0</p>
+                    <p class="text-muted small">Total Drugs: {{ total_drugs }} | Active: {{ active_drugs }} | Inactive: {{ inactive_drugs }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    
+    <!-- DataTables -->
+    <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
+    
+    <script>
+        // Initialize DataTable
+        $(document).ready(function() {
+            $('#drugTable').DataTable({
+                pageLength: 10,
+                responsive: true,
+                order: [[0, 'asc']],
+                language: {
+                    search: "Search in table:",
+                    lengthMenu: "Show _MENU_ entries",
+                    info: "Showing _START_ to _END_ of _TOTAL_ drugs",
+                    paginate: {
+                        first: "First",
+                        last: "Last",
+                        next: "Next",
+                        previous: "Previous"
+                    }
+                }
+            });
+        });
+        
+        // Sidebar toggle for mobile
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('active');
+        }
+        
+        // Submenu toggle
+        function toggleSubmenu(element) {
+            element.parentElement.classList.toggle('active');
+        }
+        
+        // Search drugs
+        function searchDrugs() {
+            const input = document.getElementById('drugSearch');
+            const filter = input.value.toUpperCase();
+            const table = document.getElementById('drugTable');
+            const tr = table.getElementsByTagName('tr');
+            
+            for (let i = 1; i < tr.length; i++) {
+                const td = tr[i].getElementsByTagName('td');
+                let found = false;
+                
+                for (let j = 0; j < td.length; j++) {
+                    if (td[j]) {
+                        const txtValue = td[j].textContent || td[j].innerText;
+                        if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                            found = true;
+                            break;
+                        }
+                    }
+                }
+                
+                tr[i].style.display = found ? '' : 'none';
+            }
+        }
+        
+        // Change rows per page
+        function changeRowsPerPage() {
+            const select = document.getElementById('rowsPerPage');
+            const value = select.value;
+            
+            if (value === 'all') {
+                $('.dataTables_length').hide();
+            } else {
+                $('#drugTable').DataTable().page.len(value).draw();
+            }
+        }
+        
+        // Filter drugs by type
+        function filterDrugs() {
+            const filter = document.getElementById('drugTypeFilter').value;
+            const table = $('#drugTable').DataTable();
+            
+            if (filter === 'all') {
+                table.column(10).search('').draw();
+            } else {
+                table.column(10).search('^' + filter + '$', true, false).draw();
+            }
+        }
+        
+        // Auto-refresh stock values every 60 seconds
+        setInterval(function() {
+            // You can implement AJAX call here to refresh stock values
+            console.log('Refreshing stock values...');
+        }, 60000);
+    </script>
+</body>
+</html>

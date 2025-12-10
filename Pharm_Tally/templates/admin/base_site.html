@@ -1,0 +1,104 @@
+{% extends "admin/base.html" %}
+{% load static %}
+
+{% block title %}{{ title }} | The_Tally Admin{% endblock %}
+
+{% block extrastyle %}
+<style>
+    :root {
+        --primary: #4361ee;
+        --secondary: #3a0ca3;
+        --accent: #f72585;
+        --success: #4cc9f0;
+        --light: #f8f9fa;
+        --dark: #212529;
+    }
+    
+    #header {
+        background: linear-gradient(135deg, var(--secondary) 0%, var(--primary) 100%);
+        color: white;
+        height: 60px;
+    }
+    
+    #branding h1 {
+        color: white;
+        font-weight: 700;
+        font-size: 1.5rem;
+    }
+    
+    .module h2, .module caption, .inline-group h2 {
+        background: linear-gradient(to right, var(--primary), var(--secondary));
+        color: white;
+        font-weight: 600;
+    }
+    
+    div.breadcrumbs {
+        background: #4cc9f0;
+        color: var(--dark);
+        font-weight: 500;
+    }
+    
+    .button, input[type=submit], input[type=button], .submit-row input, a.button {
+        background: var(--primary);
+        border: none;
+        border-radius: 4px;
+        font-weight: 600;
+    }
+    
+    .button:hover, input[type=submit]:hover, input[type=button]:hover {
+        background: var(--secondary);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    
+    .object-tools a {
+        background: var(--accent);
+        border-radius: 4px;
+        font-weight: 600;
+    }
+    
+    .object-tools a:hover {
+        background: #d9048e;
+        transform: translateY(-1px);
+    }
+    
+    #content-main {
+        background: var(--light);
+        padding: 20px;
+        border-radius: 8px;
+    }
+    
+    /* Custom dashboard button */
+    .dashboard-btn {
+        background: var(--success);
+        color: white;
+        padding: 8px 16px;
+        border-radius: 4px;
+        text-decoration: none;
+        margin-right: 10px;
+        font-weight: 600;
+    }
+    
+    .dashboard-btn:hover {
+        background: #2db4d9;
+        color: white;
+    }
+</style>
+{% endblock %}
+
+{% block branding %}
+<h1 id="site-name">
+    <a href="{% url 'admin:index' %}">
+        <i class="fas fa-capsules"></i> The_Tally Administration
+    </a>
+</h1>
+{% endblock %}
+
+{% block userlinks %}
+    {% if user.is_authenticated %}
+        <a href="{% url 'admin_dashboard' %}" class="dashboard-btn">
+            <i class="fas fa-tachometer-alt"></i> Dashboard
+        </a>
+    {% endif %}
+    {{ block.super }}
+{% endblock %}
